@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CyberMind AI — Cybersecurity Learning</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:#010409;color:#c9d1d9;min-height:100vh;}
+button{cursor:pointer;}
+a{text-decoration:none;color:inherit;}
+
+/* ── AUTH ── */
+#auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
+.auth-box{background:#0d1117;border:1px solid #30363d;border-radius:12px;padding:36px 32px;width:100%;max-width:420px;}
+.auth-logo{text-align:center;margin-bottom:28px;}
+.auth-logo h1{font-family:'Courier New',monospace;font-size:22px;font-weight:700;color:#58a6ff;}
+.auth-logo h1 span{color:#3fb950;}
+.auth-logo p{font-size:12px;color:#8b949e;margin-top:4px;}
+.auth-tabs{display:flex;gap:2px;background:#161b22;border-radius:6px;padding:3px;margin-bottom:24px;}
+.auth-tab{flex:1;padding:8px;font-size:12px;font-family:'Courier New',monospace;font-weight:600;border:none;background:transparent;color:#8b949e;border-radius:4px;cursor:pointer;transition:all .15s;}
+.auth-tab.active{background:#0d1117;color:#58a6ff;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-size:12px;color:#8b949e;margin-bottom:6px;font-family:'Courier New',monospace;}
+.form-input{width:100%;background:#161b22;border:1px solid #30363d;color:#c9d1d9;padding:10px 12px;border-radius:6px;font-size:13px;outline:none;transition:border-color .15s;}
+.form-input:focus{border-color:#58a6ff;}
+.form-input::placeholder{color:#484f58;}
+.auth-btn{width:100%;padding:11px;background:#238636;border:none;color:white;border-radius:6px;font-size:13px;font-weight:600;font-family:'Courier New',monospace;margin-top:4px;transition:background .1s;}
+.auth-btn:hover{background:#2ea043;}
+.auth-msg{font-size:12px;text-align:center;margin-top:12px;min-height:18px;}
+.auth-msg.error{color:#f85149;}
+.auth-msg.success{color:#3fb950;}
+.forgot-link{font-size:11px;color:#58a6ff;text-align:right;display:block;margin-top:6px;cursor:pointer;}
+.forgot-link:hover{text-decoration:underline;}
+.auth-note{font-size:11px;color:#484f58;text-align:center;margin-top:14px;line-height:1.6;}
+
+/* ── MAIN APP ── */
+#main-app{display:none;}
+.topbar{background:#0d1117;padding:11px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #30363d;position:sticky;top:0;z-index:100;}
+.topbar-logo{font-family:'Courier New',monospace;font-size:15px;font-weight:700;color:#58a6ff;}
+.topbar-logo span{color:#3fb950;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.user-badge{font-size:12px;color:#8b949e;background:#161b22;border:1px solid #30363d;padding:4px 10px;border-radius:4px;font-family:'Courier New',monospace;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.logout-btn{font-size:11px;background:transparent;border:1px solid #f85149;color:#f85149;padding:4px 10px;border-radius:4px;font-family:'Courier New',monospace;}
+.logout-btn:hover{background:#f85149;color:white;}
+.nav{background:#0d1117;display:flex;gap:2px;padding:0 16px;border-bottom:1px solid #30363d;overflow-x:auto;}
+.nav::-webkit-scrollbar{height:0;}
+.nav-btn{font-family:'Courier New',monospace;font-size:11px;font-weight:600;color:#8b949e;background:transparent;border:none;padding:10px 13px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+.nav-btn:hover{color:#c9d1d9;}
+.nav-btn.active{color:#58a6ff;border-bottom-color:#58a6ff;}
+.content{display:none;padding:20px;max-width:920px;margin:0 auto;}
+.content.active{display:block;}
+
+/* ── API BANNER ── */
+.api-banner{background:#161b22;border:1px solid #d29922;border-radius:8px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.api-banner span{color:#c9d1d9;flex:1;min-width:180px;font-size:12px;}
+.api-banner a{color:#58a6ff;}
+.api-input{font-family:'Courier New',monospace;font-size:12px;background:#0d1117;border:1px solid #30363d;color:#c9d1d9;padding:7px 10px;border-radius:5px;outline:none;width:240px;}
+.api-input:focus{border-color:#58a6ff;}
+.api-save-btn{background:#1f4b8a;border:1px solid #388bfd;color:#58a6ff;padding:7px 14px;border-radius:5px;font-size:12px;font-family:'Courier New',monospace;font-weight:600;}
+.api-save-btn:hover{background:#388bfd;color:white;}
+
+/* ── TERMINAL ── */
+.sec-label{font-family:'Courier New',monospace;font-size:11px;color:#3fb950;letter-spacing:.07em;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.sec-label::after{content:'';flex:1;height:1px;background:#21262d;}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
+.chip{font-size:11px;font-family:'Courier New',monospace;background:#161b22;border:1px solid #30363d;color:#58a6ff;padding:5px 11px;border-radius:4px;cursor:pointer;}
+.chip:hover{background:#1c2128;border-color:#58a6ff;}
+.terminal{background:#0d1117;border:1px solid #30363d;border-radius:8px;overflow:hidden;font-family:'Courier New',monospace;}
+.term-header{background:#161b22;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #30363d;}
+.term-dots{display:flex;gap:6px;}
+.dot{width:11px;height:11px;border-radius:50%;}
+.dot-r{background:#f85149;}.dot-y{background:#d29922;}.dot-g{background:#3fb950;}
+.term-title{font-size:11px;color:#8b949e;}
+.new-chat-btn{font-size:11px;background:#0d1117;border:1px solid #30363d;color:#58a6ff;padding:3px 10px;border-radius:4px;font-family:'Courier New',monospace;}
+.new-chat-btn:hover{border-color:#58a6ff;}
+.term-body{padding:16px;min-height:320px;max-height:420px;overflow-y:auto;font-size:13px;line-height:1.8;}
+.term-body::-webkit-scrollbar{width:3px;}
+.term-body::-webkit-scrollbar-thumb{background:#30363d;border-radius:2px;}
+.msg{margin-bottom:14px;}
+.msg-user{color:#58a6ff;word-break:break-word;}
+.msg-user::before{content:'> ';color:#3fb950;}
+.msg-ai{color:#c9d1d9;padding-left:14px;border-left:2px solid #30363d;white-space:pre-wrap;word-break:break-word;}
+.msg-ai-prefix{color:#8b949e;font-size:11px;margin-bottom:4px;}
+.msg-system{color:#8b949e;font-size:12px;}
+.msg-system::before{content:'# ';color:#3fb950;}
+.msg-error{color:#f85149;font-size:12px;}
+.msg-error::before{content:'! ';color:#f85149;}
+.term-input-row{display:flex;align-items:center;padding:10px 14px;border-top:1px solid #30363d;gap:8px;background:#161b22;}
+.term-prompt{color:#3fb950;font-size:13px;flex-shrink:0;}
+.term-input{flex:1;background:transparent;border:none;color:#c9d1d9;font-family:'Courier New',monospace;font-size:13px;outline:none;}
+.term-input::placeholder{color:#484f58;}
+.bm-btn{background:transparent;border:1px solid #30363d;color:#8b949e;padding:5px 9px;border-radius:4px;font-size:12px;}
+.bm-btn:hover{border-color:#d29922;color:#d29922;}
+.send-btn{background:#238636;border:none;color:white;padding:6px 14px;border-radius:5px;font-size:12px;font-family:'Courier New',monospace;font-weight:600;}
+.send-btn:hover{background:#2ea043;}
+.send-btn:disabled{background:#1a3a20;color:#484f58;cursor:not-allowed;}
+
+/* ── HISTORY ── */
+.search-bar{width:100%;background:#161b22;border:1px solid #30363d;color:#c9d1d9;padding:9px 12px;border-radius:6px;font-size:13px;outline:none;margin-bottom:14px;font-family:'Courier New',monospace;}
+.search-bar:focus{border-color:#58a6ff;}
+.history-item{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:14px;margin-bottom:10px;}
+.h-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;}
+.h-title{font-size:13px;font-weight:600;color:#c9d1d9;font-family:'Courier New',monospace;flex:1;}
+.h-date{font-size:10px;color:#8b949e;font-family:'Courier New',monospace;white-space:nowrap;}
+.h-preview{font-size:12px;color:#8b949e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.h-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
+.h-meta{font-size:11px;color:#484f58;font-family:'Courier New',monospace;}
+.del-btn{background:transparent;border:1px solid #f8514944;color:#f85149;padding:2px 8px;border-radius:3px;font-size:11px;}
+.del-btn:hover{background:#f85149;color:white;border-color:#f85149;}
+.empty-state{text-align:center;padding:40px 20px;color:#484f58;font-family:'Courier New',monospace;font-size:13px;line-height:1.8;}
+
+/* ── BOOKMARKS ── */
+.bm-item{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:14px;margin-bottom:10px;}
+.bm-q{font-size:13px;color:#58a6ff;font-family:'Courier New',monospace;margin-bottom:6px;}
+.bm-q::before{content:'Q: ';color:#3fb950;}
+.bm-a{font-size:12px;color:#8b949e;white-space:pre-wrap;word-break:break-word;max-height:80px;overflow:hidden;}
+.bm-actions{display:flex;gap:8px;margin-top:10px;}
+.bm-act{font-size:11px;font-family:'Courier New',monospace;padding:3px 10px;border-radius:4px;border:1px solid #30363d;color:#8b949e;background:transparent;}
+.bm-act:hover{border-color:#58a6ff;color:#58a6ff;}
+.bm-del{border-color:#f8514944;color:#f85149;}
+.bm-del:hover{background:#f85149;color:white;border-color:#f85149;}
+
+/* ── QUIZ ── */
+.quiz-topic-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px;}
+.quiz-topic{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:14px;cursor:pointer;text-align:center;}
+.quiz-topic:hover{border-color:#58a6ff;}
+.qt-icon{font-size:24px;margin-bottom:6px;}
+.qt-name{font-size:12px;color:#c9d1d9;font-family:'Courier New',monospace;}
+.quiz-card{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:20px;margin-bottom:14px;}
+.quiz-counter{font-size:11px;color:#8b949e;font-family:'Courier New',monospace;margin-bottom:10px;}
+.quiz-q{font-size:14px;color:#c9d1d9;margin-bottom:16px;line-height:1.6;}
+.quiz-q strong{color:#58a6ff;}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;}
+.qopt{background:#161b22;border:1px solid #30363d;color:#c9d1d9;padding:10px 14px;border-radius:6px;font-size:13px;text-align:left;}
+.qopt:hover:not(:disabled){border-color:#58a6ff;color:#58a6ff;}
+.qopt.correct{border-color:#3fb950;background:#0d2114;color:#3fb950;}
+.qopt.wrong{border-color:#f85149;background:#2d0f10;color:#f85149;}
+.qopt:disabled{cursor:default;}
+.quiz-exp{margin-top:14px;padding:12px;background:#161b22;border-left:3px solid #58a6ff;border-radius:4px;font-size:12px;color:#8b949e;line-height:1.65;display:none;}
+.quiz-nav{display:none;gap:10px;margin-top:14px;}
+.qnav-btn{padding:7px 16px;border-radius:5px;font-size:12px;font-family:'Courier New',monospace;font-weight:600;border:none;background:#238636;color:white;}
+.qnav-btn:hover{background:#2ea043;}
+.qnav-sec{background:#1f4b8a !important;}
+.qnav-sec:hover{background:#388bfd !important;}
+.quiz-score-wrap{text-align:center;padding:30px 20px;font-family:'Courier New',monospace;}
+.quiz-score-wrap h2{font-size:20px;color:#58a6ff;margin-bottom:8px;}
+.score-big{font-size:52px;font-weight:700;color:#3fb950;margin:16px 0;}
+.score-sub{font-size:13px;color:#8b949e;}
+.score-btns{display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap;}
+
+/* ── PROGRESS ── */
+.progress-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;}
+.stat-card{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:16px;text-align:center;}
+.stat-val{font-size:32px;font-weight:700;color:#58a6ff;font-family:'Courier New',monospace;}
+.stat-label{font-size:11px;color:#8b949e;margin-top:4px;}
+.tp-item{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:14px;margin-bottom:10px;}
+.tp-row{display:flex;justify-content:space-between;margin-bottom:8px;}
+.tp-name{font-size:13px;color:#c9d1d9;font-family:'Courier New',monospace;}
+.tp-count{font-size:12px;color:#58a6ff;font-family:'Courier New',monospace;}
+.pbar{height:6px;background:#21262d;border-radius:3px;overflow:hidden;}
+.pfill{height:100%;background:linear-gradient(90deg,#1f4b8a,#58a6ff);border-radius:3px;}
+
+/* ── RESOURCES / OSINT / CERTS ── */
+.res-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px;}
+.res-card{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:14px;cursor:pointer;display:block;transition:border-color .15s;}
+.res-card:hover{border-color:#58a6ff;}
+.res-icon{font-size:22px;margin-bottom:8px;}
+.res-title{font-size:13px;font-weight:600;color:#c9d1d9;margin-bottom:4px;}
+.res-sub{font-size:11px;color:#8b949e;line-height:1.5;}
+.res-badge{display:inline-block;margin-top:8px;font-size:10px;font-family:'Courier New',monospace;padding:2px 6px;border-radius:3px;background:#1c2128;border:1px solid #30363d;color:#8b949e;}
+.badge-free{color:#3fb950;border-color:#1a3a20;background:#0d2114;}
+.badge-ai{color:#a371f7;border-color:#3d1a8a;background:#150d2d;}
+.osint-tool{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:14px;margin-bottom:12px;}
+.osint-name{font-size:13px;font-weight:600;color:#c9d1d9;font-family:'Courier New',monospace;margin-bottom:6px;}
+.osint-desc{font-size:12px;color:#8b949e;line-height:1.6;margin-bottom:10px;}
+.osint-links{display:flex;flex-wrap:wrap;gap:6px;}
+.osint-link{font-size:11px;font-family:'Courier New',monospace;color:#58a6ff;background:rgba(12,45,107,.13);border:1px solid #1f4b8a;padding:3px 9px;border-radius:4px;cursor:pointer;}
+.osint-link:hover{background:rgba(31,75,138,.27);}
+.cert-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin-bottom:18px;}
+.cert-card{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:14px;cursor:pointer;}
+.cert-card:hover{border-color:#d29922;}
+.cert-level{font-size:10px;font-family:'Courier New',monospace;color:#d29922;margin-bottom:5px;}
+.cert-name{font-size:13px;font-weight:600;color:#c9d1d9;margin-bottom:3px;}
+.cert-desc{font-size:11px;color:#8b949e;line-height:1.5;}
+.hl-box{background:#0d1117;border:1px solid #30363d;border-left:3px solid #58a6ff;border-radius:6px;padding:12px 14px;margin-bottom:14px;}
+.hl-box h3{font-size:12px;color:#58a6ff;margin-bottom:6px;font-family:'Courier New',monospace;}
+.hl-box p{font-size:12px;color:#8b949e;line-height:1.6;}
+@media(max-width:600px){.topbar{padding:9px 12px;}.content{padding:14px 12px;}.auth-box{padding:24px 18px;}.api-input{width:100%;}}
+</style>
+</head>
+<body>
+
+<!-- ═══ AUTH SCREEN ═══ -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <h1>🛡️ CyberMind<span>AI</span></h1>
+      <p>Ethical Hacking Learning Platform</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="atab-login"    onclick="showTab('login')">🔐 Login</button>
+      <button class="auth-tab"        id="atab-register" onclick="showTab('register')">✨ Register</button>
+      <button class="auth-tab"        id="atab-forgot"   onclick="showTab('forgot')">🔑 Reset</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="af-login">
+      <div class="form-group"><label>Username / Email</label>
+        <input class="form-input" id="li-user" type="text" placeholder="username ya email@example.com"/></div>
+      <div class="form-group"><label>Password</label>
+        <input class="form-input" id="li-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+        <span class="forgot-link" onclick="showTab('forgot')">Forgot password?</span></div>
+      <button class="auth-btn" onclick="doLogin()">🚀 Login</button>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="af-register" style="display:none;">
+      <div class="form-group"><label>Username</label>
+        <input class="form-input" id="rg-name" type="text" placeholder="hacker_name"/></div>
+      <div class="form-group"><label>Email</label>
+        <input class="form-input" id="rg-email" type="email" placeholder="email@example.com"/></div>
+      <div class="form-group"><label>Phone (optional)</label>
+        <input class="form-input" id="rg-phone" type="tel" placeholder="+91 98765 43210"/></div>
+      <div class="form-group"><label>Password (min 6 chars)</label>
+        <input class="form-input" id="rg-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doRegister()"/></div>
+      <button class="auth-btn" onclick="doRegister()">✅ Create Account</button>
+    </div>
+
+    <!-- FORGOT / RESET -->
+    <div id="af-forgot" style="display:none;">
+      <p style="font-size:12px;color:#8b949e;margin-bottom:16px;">Username daalo — apna password reset karo.</p>
+      <div class="form-group"><label>Username</label>
+        <input class="form-input" id="fp-user" type="text" placeholder="your_username"/></div>
+      <div class="form-group"><label>New Password</label>
+        <input class="form-input" id="fp-pass" type="password" placeholder="New password (min 6 chars)" onkeydown="if(event.key==='Enter')doReset()"/></div>
+      <button class="auth-btn" onclick="doReset()">🔑 Reset Password</button>
+    </div>
+
+    <div class="auth-msg" id="auth-msg"></div>
+    <div class="auth-note">🔒 Data sirf aapke device pe save hota hai.<br>Koi server nahi — 100% private.</div>
+  </div>
+</div>
+
+<!-- ═══ MAIN APP ═══ -->
+<div id="main-app">
+  <div class="topbar">
+    <div class="topbar-logo">🛡️ CyberMind<span>AI</span></div>
+    <div class="topbar-right">
+      <div class="user-badge" id="user-badge">👤 user</div>
+      <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="nav-btn active" id="tab-qa"        onclick="switchTab('qa')">💻 Terminal</button>
+    <button class="nav-btn"        id="tab-history"   onclick="switchTab('history')">📜 History</button>
+    <button class="nav-btn"        id="tab-bookmarks" onclick="switchTab('bookmarks')">🔖 Bookmarks</button>
+    <button class="nav-btn"        id="tab-quiz"      onclick="switchTab('quiz')">🧠 Quiz</button>
+    <button class="nav-btn"        id="tab-progress"  onclick="switchTab('progress')">📊 Progress</button>
+    <button class="nav-btn"        id="tab-osint"     onclick="switchTab('osint')">🔍 OSINT</button>
+    <button class="nav-btn"        id="tab-resources" onclick="switchTab('resources')">📚 Resources</button>
+    <button class="nav-btn"        id="tab-certs"     onclick="switchTab('certs')">🏆 Certs</button>
+  </div>
+
+  <!-- TERMINAL TAB -->
+  <div class="content active" id="content-qa">
+    <div class="api-banner" id="api-banner">
+      <span>🔑 <strong style="color:#d29922;">Anthropic API Key</strong> daalo — Free: <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></span>
+      <input type="password" class="api-input" id="api-key-input" placeholder="sk-ant-api03-..."/>
+      <button class="api-save-btn" onclick="saveKey()">✅ Save</button>
+    </div>
+    <div class="sec-label">// quick topics</div>
+    <div class="chip-row">
+      <span class="chip" onclick="askQ('SQL Injection kya hota hai? Real example aur prevention batao.')">💉 SQL Injection</span>
+      <span class="chip" onclick="askQ('XSS attack types aur prevention explain karo.')">⚡ XSS</span>
+      <span class="chip" onclick="askQ('Nmap ke common commands aur flags batao examples ke saath.')">🔎 Nmap</span>
+      <span class="chip" onclick="askQ('Burp Suite ka basic use ethical web testing mein kaise karein?')">🕷️ Burp Suite</span>
+      <span class="chip" onclick="askQ('Metasploit framework basics aur common modules explain karo.')">💣 Metasploit</span>
+      <span class="chip" onclick="askQ('CTF challenges ke liye beginner guide aur resources do.')">🚩 CTF</span>
+      <span class="chip" onclick="askQ('Linux ke top 20 commands jo ethical hacker ko aane chahiye.')">🐧 Linux</span>
+      <span class="chip" onclick="askQ('OWASP Top 10 vulnerabilities 2024 ek ek explain karo.')">⚠️ OWASP Top 10</span>
+      <span class="chip" onclick="askQ('Password cracking: Hashcat aur John the Ripper ka use batao.')">🔓 Password</span>
+      <span class="chip" onclick="askQ('Wireshark se network packet analysis kaise karein?')">📡 Wireshark</span>
+      <span class="chip" onclick="askQ('Reverse shell kya hota hai? Kaise kaam karta hai?')">🐚 Reverse Shell</span>
+      <span class="chip" onclick="askQ('Linux mein privilege escalation techniques kya hain?')">⬆️ Priv Esc</span>
+    </div>
+    <div class="terminal">
+      <div class="term-header">
+        <div class="term-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span class="term-title">cybermind@ai:~$</span>
+        <button class="new-chat-btn" onclick="newChat()">+ New Chat</button>
+      </div>
+      <div class="term-body" id="term-body">
+        <div class="msg msg-system">CyberMind AI v2.0 ready. Koi bhi cybersecurity question poochho!</div>
+        <div class="msg msg-system">History auto-save. 🔖 se answers bookmark karo.</div>
+      </div>
+      <div class="term-input-row">
+        <span class="term-prompt">~$&nbsp;</span>
+        <input type="text" class="term-input" id="q-input" placeholder="Cybersecurity question likho..." onkeydown="if(event.key==='Enter')sendQuery()"/>
+        <button class="bm-btn" onclick="bookmarkLast()" title="Bookmark">🔖</button>
+        <button class="send-btn" id="send-btn" onclick="sendQuery()">▶ Run</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div class="content" id="content-history">
+    <div class="sec-label">// conversation history</div>
+    <input type="text" class="search-bar" id="history-search" placeholder="🔍 History search karo..." oninput="renderHistory()"/>
+    <div id="history-list"></div>
+  </div>
+
+  <!-- BOOKMARKS TAB -->
+  <div class="content" id="content-bookmarks">
+    <div class="sec-label">// saved answers</div>
+    <div id="bookmarks-list"></div>
+  </div>
+
+  <!-- QUIZ TAB -->
+  <div class="content" id="content-quiz">
+    <div id="quiz-topics">
+      <div class="sec-label">// choose topic</div>
+      <div class="quiz-topic-grid">
+        <div class="quiz-topic" onclick="startQuiz('web')"><div class="qt-icon">🌐</div><div class="qt-name">Web Security</div></div>
+        <div class="quiz-topic" onclick="startQuiz('network')"><div class="qt-icon">📡</div><div class="qt-name">Networking</div></div>
+        <div class="quiz-topic" onclick="startQuiz('linux')"><div class="qt-icon">🐧</div><div class="qt-name">Linux</div></div>
+        <div class="quiz-topic" onclick="startQuiz('tools')"><div class="qt-icon">🛠️</div><div class="qt-name">Hacking Tools</div></div>
+        <div class="quiz-topic" onclick="startQuiz('crypto')"><div class="qt-icon">🔐</div><div class="qt-name">Cryptography</div></div>
+        <div class="quiz-topic" onclick="startQuiz('osint')"><div class="qt-icon">🔍</div><div class="qt-name">OSINT</div></div>
+      </div>
+    </div>
+    <div id="quiz-area"></div>
+  </div>
+
+  <!-- PROGRESS TAB -->
+  <div class="content" id="content-progress">
+    <div class="sec-label">// your stats</div>
+    <div class="progress-grid" id="progress-stats"></div>
+    <div class="sec-label">// topic activity</div>
+    <div id="topic-bars"></div>
+  </div>
+
+  <!-- OSINT TAB -->
+  <div class="content" id="content-osint">
+    <div class="sec-label">// osint tools</div>
+    <div class="osint-tool"><div class="osint-name">🌐 Passive Recon</div><div class="osint-desc">Bina direct contact ke target ki info gather karna — DNS, WHOIS, SSL certs.</div><div class="osint-links"><a class="osint-link" href="https://www.shodan.io" target="_blank">Shodan</a><a class="osint-link" href="https://crt.sh" target="_blank">crt.sh</a><a class="osint-link" href="https://dnsdumpster.com" target="_blank">DNSDumpster</a><a class="osint-link" href="https://whois.domaintools.com" target="_blank">WHOIS</a><a class="osint-link" href="https://web.archive.org" target="_blank">Wayback</a><span class="osint-link" onclick="askQ('Passive reconnaissance step by step tools explain karo.')">🤖 Ask AI</span></div></div>
+    <div class="osint-tool"><div class="osint-name">👤 People & Email</div><div class="osint-desc">Email, username aur social profiles investigation. Authorized use only.</div><div class="osint-links"><a class="osint-link" href="https://haveibeenpwned.com" target="_blank">HaveIBeenPwned</a><a class="osint-link" href="https://hunter.io" target="_blank">Hunter.io</a><a class="osint-link" href="https://www.maltego.com" target="_blank">Maltego</a><span class="osint-link" onclick="askQ('Email OSINT techniques aur theHarvester tool batao.')">🤖 Ask AI</span></div></div>
+    <div class="osint-tool"><div class="osint-name">🔎 Google Dorking</div><div class="osint-desc">Advanced Google operators se publicly exposed data dhundna.</div><div class="osint-links"><a class="osint-link" href="https://www.exploit-db.com/google-hacking-database" target="_blank">GHDB</a><span class="osint-link" onclick="askQ('Google dorking top 20 operators examples ke saath batao.')">🤖 Ask AI</span></div></div>
+    <div class="osint-tool"><div class="osint-name">🌍 Network Recon</div><div class="osint-desc">IP ranges, ASN info, network topology. Authorized only.</div><div class="osint-links"><a class="osint-link" href="https://bgp.he.net" target="_blank">HE BGP</a><a class="osint-link" href="https://censys.io" target="_blank">Censys</a><a class="osint-link" href="https://ipinfo.io" target="_blank">IPInfo</a><span class="osint-link" onclick="askQ('Network OSINT aur IP recon techniques batao.')">🤖 Ask AI</span></div></div>
+    <div class="osint-tool"><div class="osint-name">💻 GitHub OSINT</div><div class="osint-desc">Exposed API keys, credentials dhundna. Authorized repos only.</div><div class="osint-links"><a class="osint-link" href="https://github.com/trufflesecurity/trufflehog" target="_blank">TruffleHog</a><a class="osint-link" href="https://github.com/zricethezav/gitleaks" target="_blank">GitLeaks</a><span class="osint-link" onclick="askQ('GitHub OSINT techniques aur exposed secrets kaise dhundein?')">🤖 Ask AI</span></div></div>
+  </div>
+
+  <!-- RESOURCES TAB -->
+  <div class="content" id="content-resources">
+    <div class="sec-label">// learning platforms</div>
+    <div class="hl-box"><h3>🌟 Recommended Path</h3><p>TryHackMe → OWASP Top 10 → PortSwigger → HackTheBox → Bug Bounty</p></div>
+    <div class="res-grid">
+      <a class="res-card" href="https://tryhackme.com" target="_blank"><div class="res-icon">🎯</div><div class="res-title">TryHackMe</div><div class="res-sub">Beginner-friendly guided rooms. Browser labs!</div><span class="res-badge badge-free">✅ Freemium</span></a>
+      <a class="res-card" href="https://hackthebox.com" target="_blank"><div class="res-icon">📦</div><div class="res-title">HackTheBox</div><div class="res-sub">Intermediate-advanced machines.</div><span class="res-badge badge-free">✅ Free Tier</span></a>
+      <a class="res-card" href="https://portswigger.net/web-security" target="_blank"><div class="res-icon">🕷️</div><div class="res-title">PortSwigger Academy</div><div class="res-sub">Web security ka best free resource!</div><span class="res-badge badge-free">✅ 100% Free</span></a>
+      <a class="res-card" href="https://owasp.org/www-project-top-ten/" target="_blank"><div class="res-icon">⚠️</div><div class="res-title">OWASP Top 10</div><div class="res-sub">Top 10 critical web vulnerabilities.</div><span class="res-badge badge-free">✅ Free</span></a>
+      <a class="res-card" href="https://overthewire.org/wargames/" target="_blank"><div class="res-icon">⚔️</div><div class="res-title">OverTheWire</div><div class="res-sub">Linux basics se binary exploitation.</div><span class="res-badge badge-free">✅ Free</span></a>
+      <a class="res-card" href="https://ctftime.org" target="_blank"><div class="res-icon">🚩</div><div class="res-title">CTFtime.org</div><div class="res-sub">Worldwide CTF competitions.</div><span class="res-badge badge-free">✅ Free</span></a>
+      <a class="res-card" href="https://www.vulnhub.com" target="_blank"><div class="res-icon">🖥️</div><div class="res-title">VulnHub</div><div class="res-sub">Download vulnerable VMs offline.</div><span class="res-badge badge-free">✅ Free</span></a>
+      <a class="res-card" href="https://www.kali.org/docs/" target="_blank"><div class="res-icon">🐉</div><div class="res-title">Kali Linux Docs</div><div class="res-sub">600+ security tools official docs.</div><span class="res-badge badge-free">✅ Free</span></a>
+      <div class="res-card" onclick="askQ('Ethical hacking 6 month complete roadmap do. Beginner se intermediate. Hindi mein.')"><div class="res-icon">🗺️</div><div class="res-title">AI Roadmap</div><div class="res-sub">Personalized 6-month learning plan!</div><span class="res-badge badge-ai">🤖 AI</span></div>
+      <div class="res-card" onclick="askQ('Bug bounty hunting se paise kaise kamayein? Complete beginner guide.')"><div class="res-icon">💰</div><div class="res-title">Bug Bounty Guide</div><div class="res-sub">HackerOne, Bugcrowd se income.</div><span class="res-badge badge-ai">🤖 AI</span></div>
+    </div>
+  </div>
+
+  <!-- CERTS TAB -->
+  <div class="content" id="content-certs">
+    <div class="sec-label">// certifications</div>
+    <div class="hl-box"><h3>💡 Path</h3><p>Security+ / eJPT → CEH / PNPT → OSCP → CISSP</p></div>
+    <div class="sec-label">// beginner</div>
+    <div class="cert-grid">
+      <div class="cert-card" onclick="askQ('CompTIA Security+ preparation guide aur resources batao.')"><div class="cert-level">⭐ Beginner</div><div class="cert-name">Security+</div><div class="cert-desc">Industry standard entry-level cert.</div></div>
+      <div class="cert-card" onclick="askQ('eJPT certification kya hai? Preparation guide do.')"><div class="cert-level">⭐ Beginner</div><div class="cert-name">eJPT</div><div class="cert-desc">Practical pentesting beginner cert.</div></div>
+      <div class="cert-card" onclick="askQ('CompTIA Network+ certification guide do.')"><div class="cert-level">⭐ Beginner</div><div class="cert-name">Network+</div><div class="cert-desc">Networking fundamentals cert.</div></div>
+    </div>
+    <div class="sec-label">// intermediate</div>
+    <div class="cert-grid">
+      <div class="cert-card" onclick="askQ('CEH v12 certification preparation guide do.')"><div class="cert-level">⭐⭐ Intermediate</div><div class="cert-name">CEH v12</div><div class="cert-desc">India mein widely recognized.</div></div>
+      <div class="cert-card" onclick="askQ('PNPT certification TCM Security review do.')"><div class="cert-level">⭐⭐ Intermediate</div><div class="cert-name">PNPT</div><div class="cert-desc">Practical, affordable, respected.</div></div>
+    </div>
+    <div class="sec-label">// advanced</div>
+    <div class="cert-grid">
+      <div class="cert-card" onclick="askQ('OSCP certification complete preparation guide do.')"><div class="cert-level">⭐⭐⭐ Advanced</div><div class="cert-name">OSCP</div><div class="cert-desc">Gold standard. 24-hr practical exam.</div></div>
+      <div class="cert-card" onclick="askQ('CISSP certification senior roles ke liye guide do.')"><div class="cert-level">⭐⭐⭐ Expert</div><div class="cert-name">CISSP</div><div class="cert-desc">Senior security management cert.</div></div>
+      <div class="cert-card" onclick="askQ('Bug bounty hunting se professional career kaise banayein?')"><div class="cert-level">💰 Income</div><div class="cert-name">Bug Bounty</div><div class="cert-desc">HackerOne, Bugcrowd se income.</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// STORAGE HELPERS — localStorage based
+// ═══════════════════════════════════════════
+const S = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch(e) { return null; } },
+  set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
+  del: k => localStorage.removeItem(k)
+};
+
+// ── STATE ──
+let currentUser = null;
+let currentChatId = null;
+let chatMsgs = [];
+let lastQ = '', lastA = '';
+let quizState = null;
+
+const SYS = `You are CyberMind AI — expert cybersecurity learning assistant.
+Answer every educational question fully. Ethical/legal use only — always mention authorization requirement. Respond in Hinglish when user writes Hindi/Hinglish, keep technical terms in English. Give practical commands and examples. Plain text only — no markdown asterisks or hashtags.`;
+
+// ═══════════════════════════════════════════
+// AUTH — localStorage based
+// ═══════════════════════════════════════════
+function showTab(t) {
+  ['login','register','forgot'].forEach(x => {
+    document.getElementById('af-'+x).style.display = x===t?'block':'none';
+    document.getElementById('atab-'+x).classList.toggle('active', x===t);
+  });
+  setMsg('');
+}
+
+function setMsg(msg, type) {
+  const el = document.getElementById('auth-msg');
+  el.textContent = msg;
+  el.className = 'auth-msg' + (type?' '+type:'');
+}
+
+function getUsers() { return S.get('cm_users') || {}; }
+function saveUsers(u) { S.set('cm_users', u); }
+
+function doLogin() {
+  const id = document.getElementById('li-user').value.trim();
+  const pw = document.getElementById('li-pass').value;
+  if (!id||!pw) { setMsg('Username aur password daalo!','error'); return; }
+  const users = getUsers();
+  // allow email or username
+  const user = users[id] || Object.values(users).find(u => u.email===id);
+  if (!user) { setMsg('User nahi mila. Pehle register karo!','error'); return; }
+  if (user.password !== btoa(pw)) { setMsg('Password galat hai!','error'); return; }
+  loginSuccess(user);
+}
+
+function doRegister() {
+  const name  = document.getElementById('rg-name').value.trim();
+  const email = document.getElementById('rg-email').value.trim();
+  const phone = document.getElementById('rg-phone').value.trim();
+  const pw    = document.getElementById('rg-pass').value;
+  if (!name||!email||!pw) { setMsg('Name, email aur password required!','error'); return; }
+  if (pw.length<6) { setMsg('Password min 6 characters!','error'); return; }
+  const users = getUsers();
+  if (users[name]) { setMsg('Username already exists!','error'); return; }
+  if (Object.values(users).find(u=>u.email===email)) { setMsg('Email already registered!','error'); return; }
+  const user = { username:name, email, phone, password:btoa(pw), createdAt:Date.now() };
+  users[name] = user;
+  saveUsers(users);
+  setMsg('Account ban gaya! Ab login karo.','success');
+  setTimeout(()=>showTab('login'),1200);
+}
+
+function doReset() {
+  const uname = document.getElementById('fp-user').value.trim();
+  const npw   = document.getElementById('fp-pass').value;
+  if (!uname||!npw) { setMsg('Username aur new password daalo!','error'); return; }
+  if (npw.length<6) { setMsg('Password min 6 characters!','error'); return; }
+  const users = getUsers();
+  if (!users[uname]) { setMsg('Username nahi mila!','error'); return; }
+  users[uname].password = btoa(npw);
+  saveUsers(users);
+  setMsg('Password reset ho gaya! Login karo.','success');
+  setTimeout(()=>showTab('login'),1200);
+}
+
+function loginSuccess(user) {
+  currentUser = user;
+  S.set('cm_session', user.username);
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+  document.getElementById('user-badge').textContent = '👤 ' + user.username;
+  const key = S.get('cm_key_'+user.username) || S.get('cm_key') || '';
+  document.getElementById('api-key-input').value = key;
+  if (key) document.getElementById('api-banner').style.display = 'none';
+  addMsg('system', 'Welcome back, ' + user.username + '! 🛡️');
+}
+
+function doLogout() {
+  S.del('cm_session');
+  currentUser = null; currentChatId = null; chatMsgs = []; lastQ = ''; lastA = '';
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('term-body').innerHTML = '';
+  setMsg('');
+}
+
+// Auto-login if session exists
+(function() {
+  const sess = S.get('cm_session');
+  if (sess) {
+    const users = getUsers();
+    if (users[sess]) { loginSuccess(users[sess]); return; }
+  }
+  document.getElementById('auth-screen').style.display = 'flex';
+})();
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+function switchTab(t) {
+  document.querySelectorAll('.content').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('content-'+t).classList.add('active');
+  document.getElementById('tab-'+t).classList.add('active');
+  if (t==='history')   renderHistory();
+  if (t==='bookmarks') renderBookmarks();
+  if (t==='progress')  renderProgress();
+}
+
+// ═══════════════════════════════════════════
+// API KEY
+// ═══════════════════════════════════════════
+function saveKey() {
+  const k = document.getElementById('api-key-input').value.trim();
+  if (!k||!k.startsWith('sk-ant-')) { alert('Invalid key! Should start with sk-ant-\n\nFree key: https://console.anthropic.com'); return; }
+  S.set('cm_key', k);
+  if (currentUser) S.set('cm_key_'+currentUser.username, k);
+  document.getElementById('api-banner').style.display = 'none';
+  addMsg('system','API key saved! Ab questions poochho. 🚀');
+}
+
+function getKey() {
+  if (currentUser) return S.get('cm_key_'+currentUser.username) || S.get('cm_key') || '';
+  return S.get('cm_key') || '';
+}
+
+// ═══════════════════════════════════════════
+// TERMINAL
+// ═══════════════════════════════════════════
+function addMsg(type, text) {
+  const body = document.getElementById('term-body');
+  const div = document.createElement('div');
+  div.className = 'msg msg-'+type;
+  if (type==='ai') {
+    const pre = document.createElement('div');
+    pre.className = 'msg-ai-prefix';
+    pre.textContent = 'claude@cybermind:';
+    div.appendChild(pre);
+    div.appendChild(document.createTextNode(text));
+  } else {
+    div.textContent = text;
+  }
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+  return div;
+}
+
+function newChat() {
+  chatMsgs=[]; currentChatId=null; lastQ=''; lastA='';
+  document.getElementById('term-body').innerHTML='';
+  addMsg('system','New chat started!');
+}
+
+function askQ(q) {
+  switchTab('qa');
+  document.getElementById('q-input').value = q;
+  sendQuery();
+}
+
+async function sendQuery() {
+  const inp = document.getElementById('q-input');
+  const q = inp.value.trim();
+  const btn = document.getElementById('send-btn');
+  if (!q||btn.disabled) return;
+  const key = getKey();
+  if (!key) { addMsg('error','Pehle API key daalo!'); return; }
+  inp.value=''; btn.disabled=true;
+  lastQ=q;
+  addMsg('user', q);
+  chatMsgs.push({role:'user',content:q});
+  const thinking = addMsg('system','Processing...');
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYS,messages:chatMsgs})
+    });
+    const data = await res.json();
+    thinking.remove();
+    if (data.error) { addMsg('error','API Error: '+data.error.message); chatMsgs.pop(); }
+    else {
+      const reply = (data.content||[]).map(b=>b.text||'').join('');
+      chatMsgs.push({role:'assistant',content:reply});
+      lastA=reply;
+      addMsg('ai',reply);
+      saveHistory(q,reply);
+      trackProgress(q);
+    }
+    if (chatMsgs.length>24) chatMsgs=chatMsgs.slice(-22);
+  } catch(e) {
+    thinking.remove();
+    addMsg('error','Connection error: '+e.message);
+    chatMsgs.pop();
+  }
+  btn.disabled=false;
+  inp.focus();
+}
+
+// ═══════════════════════════════════════════
+// HISTORY — localStorage
+// ═══════════════════════════════════════════
+function histKey() { return 'cm_history_'+(currentUser?currentUser.username:'guest'); }
+
+function saveHistory(q, a) {
+  if (!currentUser) return;
+  if (!currentChatId) currentChatId = Date.now().toString();
+  const all = S.get(histKey()) || {};
+  const chat = all[currentChatId] || { id:currentChatId, title:'', messages:[], createdAt:Date.now() };
+  chat.messages.push({q, a, time:Date.now()});
+  chat.title = chat.messages[0].q.substring(0,60)+(chat.messages[0].q.length>60?'...':'');
+  chat.updatedAt = Date.now();
+  all[currentChatId] = chat;
+  S.set(histKey(), all);
+}
+
+function getHistory() {
+  const all = S.get(histKey()) || {};
+  return Object.values(all).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+}
+
+function renderHistory() {
+  const search = (document.getElementById('history-search').value||'').toLowerCase();
+  const list = document.getElementById('history-list');
+  const all = getHistory().filter(h=>!search||h.title.toLowerCase().includes(search)||(h.messages||[]).some(m=>m.q.toLowerCase().includes(search)));
+  if (!all.length) { list.innerHTML='<div class="empty-state">📭 Koi history nahi.<br>Terminal mein kuch poochho!</div>'; return; }
+  list.innerHTML = all.map(h=>{
+    const d = new Date(h.updatedAt||h.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    const prev = (h.messages[0]?.a||'').substring(0,100);
+    return `<div class="history-item">
+      <div class="h-header"><div class="h-title">💬 ${esc(h.title)}</div><div class="h-date">${d}</div></div>
+      <div class="h-preview">${esc(prev)}</div>
+      <div class="h-footer"><span class="h-meta">${h.messages.length} messages</span><button class="del-btn" onclick="deleteHistory('${h.id}')">🗑️ Delete</button></div>
+    </div>`;
+  }).join('');
+}
+
+function deleteHistory(id) {
+  if (!confirm('Delete this conversation?')) return;
+  const all = S.get(histKey()) || {};
+  delete all[id];
+  S.set(histKey(), all);
+  if (currentChatId===id) { currentChatId=null; chatMsgs=[]; }
+  renderHistory();
+}
+
+// ═══════════════════════════════════════════
+// BOOKMARKS — localStorage
+// ═══════════════════════════════════════════
+function bmKey() { return 'cm_bm_'+(currentUser?currentUser.username:'guest'); }
+
+function bookmarkLast() {
+  if (!lastQ||!lastA) { addMsg('system','Pehle kuch poochho phir bookmark karo!'); return; }
+  const bms = S.get(bmKey()) || [];
+  bms.unshift({id:Date.now().toString(), q:lastQ, a:lastA, time:Date.now()});
+  S.set(bmKey(), bms.slice(0,50));
+  addMsg('system','🔖 Bookmark saved!');
+}
+
+function renderBookmarks() {
+  const bms = S.get(bmKey()) || [];
+  const list = document.getElementById('bookmarks-list');
+  if (!bms.length) { list.innerHTML='<div class="empty-state">🔖 Koi bookmark nahi.<br>Terminal mein 🔖 button se save karo!</div>'; return; }
+  list.innerHTML = bms.map(b=>`
+    <div class="bm-item">
+      <div class="bm-q">${esc(b.q)}</div>
+      <div class="bm-a">${esc(b.a.substring(0,200)+(b.a.length>200?'...':''))}</div>
+      <div class="bm-actions">
+        <button class="bm-act" onclick="askQ(${JSON.stringify(b.q)})">▶ Ask Again</button>
+        <button class="bm-act bm-del" onclick="deleteBookmark('${b.id}')">🗑️ Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+function deleteBookmark(id) {
+  const bms = (S.get(bmKey())||[]).filter(b=>b.id!==id);
+  S.set(bmKey(), bms);
+  renderBookmarks();
+}
+
+// ═══════════════════════════════════════════
+// PROGRESS — localStorage
+// ═══════════════════════════════════════════
+function pgKey() { return 'cm_pg_'+(currentUser?currentUser.username:'guest'); }
+
+function getPG() { return S.get(pgKey()) || {questionsAsked:0,quizzesTaken:0,quizCorrect:0,topics:{}}; }
+
+function trackProgress(q) {
+  const pg = getPG();
+  pg.questionsAsked++;
+  const kw={'Web Security':['sql','xss','csrf','injection','web','http','owasp','burp'],'Networking':['nmap','port','tcp','udp','network','packet','wireshark','dns'],'Linux':['linux','bash','chmod','sudo','shell','terminal'],'Hacking Tools':['metasploit','hydra','hashcat','john','nikto','sqlmap'],'OSINT':['osint','shodan','recon','dork','whois','maltego'],'Cryptography':['crypto','hash','encrypt','decrypt','aes','rsa']};
+  const ql=q.toLowerCase();
+  for (const [t,ws] of Object.entries(kw)) if(ws.some(w=>ql.includes(w))) pg.topics[t]=(pg.topics[t]||0)+1;
+  S.set(pgKey(), pg);
+}
+
+function renderProgress() {
+  const pg = getPG();
+  const hist = getHistory();
+  const bms = S.get(bmKey())||[];
+  const acc = pg.quizzesTaken>0?Math.round((pg.quizCorrect/pg.quizzesTaken)*100):0;
+  document.getElementById('progress-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-val">${pg.questionsAsked}</div><div class="stat-label">Questions Asked</div></div>
+    <div class="stat-card"><div class="stat-val">${hist.length}</div><div class="stat-label">Chat Sessions</div></div>
+    <div class="stat-card"><div class="stat-val">${bms.length}</div><div class="stat-label">Bookmarks</div></div>
+    <div class="stat-card"><div class="stat-val">${acc}%</div><div class="stat-label">Quiz Accuracy</div></div>`;
+  const topics=pg.topics||{};
+  const tb=document.getElementById('topic-bars');
+  if(!Object.keys(topics).length){tb.innerHTML='<div class="empty-state">📊 Abhi koi activity nahi.</div>';return;}
+  const max=Math.max(...Object.values(topics),1);
+  tb.innerHTML=Object.entries(topics).sort((a,b)=>b[1]-a[1]).map(([t,v])=>`
+    <div class="tp-item"><div class="tp-row"><span class="tp-name">${t}</span><span class="tp-count">${v} Qs</span></div>
+    <div class="pbar"><div class="pfill" style="width:${Math.round((v/max)*100)}%"></div></div></div>`).join('');
+}
+
+// ═══════════════════════════════════════════
+// QUIZ
+// ═══════════════════════════════════════════
+const QB={
+  web:[
+    {q:"SQL Injection mein attacker kya karta hai?",opts:["DB pe malicious SQL run","CSS modify","JS inject","Server crash"],ans:0,exp:"SQL Injection mein input fields mein SQL code inject karke database queries manipulate hoti hain — data steal ya auth bypass ke liye."},
+    {q:"XSS ka main risk kya hai?",opts:["Server crash","Malicious scripts victim browser mein run","DB delete","Bandwidth waste"],ans:1,exp:"XSS mein attacker JavaScript inject karta hai jo victim ke browser mein run hoti hai — cookies steal, session hijack ke liye."},
+    {q:"OWASP Top 10 2021 mein #1 kya hai?",opts:["XSS","Broken Access Control","SQL Injection","Insecure Deserialization"],ans:1,exp:"Broken Access Control #1 hai — users aisa data access kar sakte hain jo unhe nahi karna chahiye."},
+    {q:"CSRF attack mein kya hota hai?",opts:["Password crack","Victim ke naam pe unauthorized request","DNS poison","Port scan"],ans:1,exp:"CSRF mein victim ki authenticated session se unauthorized actions perform ho jaati hain."},
+    {q:"HTTPS aur HTTP mein kya fark hai?",opts:["HTTPS faster","HTTPS TLS/SSL encrypted","Koi fark nahi","Sirf images ke liye"],ans:1,exp:"HTTPS TLS/SSL use karta hai — data encrypted hota hai transit mein. HTTP plain text bhejta hai."}
+  ],
+  network:[
+    {q:"Nmap '-sS' flag kya karta hai?",opts:["UDP scan","SYN stealth scan","Full TCP scan","OS detection"],ans:1,exp:"nmap -sS SYN (half-open) scan — faster aur less detectable hota hai."},
+    {q:"Port 443 kiske liye hai?",opts:["FTP","HTTP","HTTPS","SSH"],ans:2,exp:"Port 443 HTTPS ke liye — encrypted web traffic."},
+    {q:"ARP Spoofing kya karta hai?",opts:["DNS poison","Fake ARP se MITM attack","Brute force","Port scan"],ans:1,exp:"Fake ARP messages se attacker traffic apne through route karwata hai."},
+    {q:"Wireshark kya karta hai?",opts:["Password crack","Network packets capture/analyze","Port scan","Vuln scan"],ans:1,exp:"Wireshark network protocol analyzer hai — traffic capture aur analyze karta hai."},
+    {q:"DMZ networking mein kya hai?",opts:["Firewall settings","Public servers ke liye isolated segment","VPN protocol","Encryption"],ans:1,exp:"DMZ isolated segment hai jahan public-facing servers rakhe jaate hain."}
+  ],
+  linux:[
+    {q:"chmod 777 kya karta hai?",opts:["Delete file","Sabko read+write+execute","Encrypt file","Owner change"],ans:1,exp:"chmod 777 = sabko full permissions. Security risk!"},
+    {q:"sudo kya karta hai?",opts:["Files search","Root privileges se command run","Network scan","Process kill"],ans:1,exp:"sudo temporarily root privileges se command execute karne deta hai."},
+    {q:"Hidden files kaise dekhte hain?",opts:["ls -l","ls -a","ls -h","ls -r"],ans:1,exp:"ls -a sab files including hidden (dot files) show karta hai."},
+    {q:"/etc/shadow mein kya hota hai?",opts:["Network config","Hashed passwords","System logs","Home dirs"],ans:1,exp:"/etc/shadow mein hashed passwords hote hain — sirf root read kar sakta hai."},
+    {q:"netstat -tulnp kya dikhata hai?",opts:["Processes","Listening TCP/UDP ports + processes","File permissions","Uptime"],ans:1,exp:"System pe listening ports aur unse connected processes show karta hai."}
+  ],
+  tools:[
+    {q:"msfvenom kya karta hai?",opts:["Network scan","Custom payloads generate","Password crack","Logs delete"],ans:1,exp:"msfvenom Metasploit ka payload generator hai — authorized pentesting ke liye."},
+    {q:"Burp Suite primarily kiske liye?",opts:["Network scan","Web app security testing","Password crack","Malware analysis"],ans:1,exp:"Burp Suite web application security testing platform hai."},
+    {q:"Hashcat kya karta hai?",opts:["Packet capture","GPU password recovery","Vuln scan","Firewall bypass"],ans:1,exp:"Hashcat GPU se hashed passwords crack karta hai."},
+    {q:"SQLMap kya karta hai?",opts:["DB create","SQL injection detect+exploit","Packet capture","Malware scan"],ans:1,exp:"SQLMap automated SQL injection testing tool hai. Authorized targets only."},
+    {q:"Nikto kya scan karta hai?",opts:["Network ports","Web server vulns+misconfigs","Password hashes","DNS records"],ans:1,exp:"Nikto web server scanner hai — misconfigs aur outdated software dhundta hai."}
+  ],
+  crypto:[
+    {q:"MD5 hash kitne bits?",opts:["64","128","256","512"],ans:1,exp:"MD5 128-bit = 32 hex characters. Collision issues se weak hai."},
+    {q:"Symmetric encryption mein?",opts:["Public/private keys","Ek key encrypt+decrypt dono","Koi key nahi","Sirf hashing"],ans:1,exp:"Symmetric mein same key encryption aur decryption ke liye. AES popular."},
+    {q:"RSA kiska example?",opts:["Symmetric","Asymmetric public-key encryption","Hashing","Stream cipher"],ans:1,exp:"RSA asymmetric hai — public key se encrypt, private key se decrypt."},
+    {q:"Password hashing mein Salt kya?",opts:["Speed badhana","Rainbow table attacks prevent karna","Algorithm choose","Compress karna"],ans:1,exp:"Salt random data password ke saath hash se pehle add hoti hai."},
+    {q:"HTTPS mein TLS ka role?",opts:["Speed","Data encryption + server auth","Compression","Cookie management"],ans:1,exp:"TLS data encrypt karta hai aur server identity verify karta hai."}
+  ],
+  osint:[
+    {q:"Shodan kya dhundta hai?",opts:["Social media","Internet-connected devices+services","Emails","Domains"],ans:1,exp:"Shodan internet-connected devices, open ports, services index karta hai."},
+    {q:"WHOIS se kya milta hai?",opts:["Server passwords","Domain registration info","Email passwords","Packet data"],ans:1,exp:"WHOIS se domain owner, dates, nameservers milte hain."},
+    {q:"'site:target.com filetype:pdf' kya karega?",opts:["Subdomains","target.com ki PDF files","Source code","Social media"],ans:1,exp:"Domain ki publicly indexed PDF files milti hain."},
+    {q:"Passive vs Active recon fark?",opts:["Koi fark nahi","Passive mein target contact nahi, active mein hota hai","Passive faster","Active safer"],ans:1,exp:"Passive mein public info only. Active mein directly target probe karte hain — detectable."},
+    {q:"HaveIBeenPwned kya check karta hai?",opts:["Password","Email known breaches mein tha ya nahi","Server vulns","Network"],ans:1,exp:"Email/password known data breaches mein exposed tha ya nahi check karta hai."}
+  ]
+};
+
+function startQuiz(topic) {
+  quizState={topic,qs:QB[topic],idx:0,score:0};
+  document.getElementById('quiz-topics').style.display='none';
+  renderQuizQ();
+}
+
+function renderQuizQ() {
+  const {qs,idx,score}=quizState;
+  const qa=document.getElementById('quiz-area');
+  if (idx>=qs.length) {
+    const pct=Math.round((score/qs.length)*100);
+    const pg=getPG(); pg.quizzesTaken+=qs.length; pg.quizCorrect+=score; S.set(pgKey(),pg);
+    qa.innerHTML=`<div class="quiz-score-wrap"><h2>Quiz Complete! 🎉</h2><div class="score-big">${score}/${qs.length}</div><div class="score-sub">${pct}% — ${pct>=80?'Excellent! 🔥':pct>=60?'Good! 👍':'Keep practicing! 💪'}</div><div class="score-btns"><button class="qnav-btn" onclick="startQuiz('${quizState.topic}')">🔄 Retry</button><button class="qnav-btn qnav-sec" onclick="backToTopics()">📚 Topics</button></div></div>`;
+    return;
+  }
+  const q=qs[idx];
+  qa.innerHTML=`<div class="quiz-card"><div class="quiz-counter">Q${idx+1}/${qs.length} | Score: ${score}</div><div class="quiz-q"><strong>Q${idx+1}.</strong> ${esc(q.q)}</div><div class="quiz-opts">${q.opts.map((o,i)=>`<button class="qopt" id="qo${i}" onclick="pickOpt(${i})">${String.fromCharCode(65+i)}. ${esc(o)}</button>`).join('')}</div><div class="quiz-exp" id="qexp"></div><div class="quiz-nav" id="qnav"><button class="qnav-btn" onclick="nextQ()">Next →</button></div></div>`;
+}
+
+function pickOpt(i) {
+  const q=quizState.qs[quizState.idx];
+  document.querySelectorAll('.qopt').forEach(b=>b.disabled=true);
+  document.getElementById('qo'+i).classList.add(i===q.ans?'correct':'wrong');
+  if(i!==q.ans) document.getElementById('qo'+q.ans).classList.add('correct');
+  if(i===q.ans) quizState.score++;
+  const exp=document.getElementById('qexp');
+  exp.style.display='block';
+  exp.textContent=(i===q.ans?'✅ Correct! ':'❌ Wrong! ')+q.exp;
+  document.getElementById('qnav').style.display='flex';
+}
+
+function nextQ(){quizState.idx++;renderQuizQ();}
+function backToTopics(){document.getElementById('quiz-topics').style.display='block';document.getElementById('quiz-area').innerHTML='';}
+function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+</script>
+</body>
+</html>
