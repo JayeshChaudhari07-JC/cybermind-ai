@@ -264,10 +264,8 @@ a{text-decoration:none;color:inherit;}
 
   <!-- TERMINAL TAB -->
   <div class="content active" id="content-qa">
-    <div class="api-banner" id="api-banner">
-      <span>🔑 <strong style="color:#d29922;">Anthropic API Key</strong> daalo — Free: <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></span>
-      <input type="password" class="api-input" id="api-key-input" placeholder="sk-ant-api03-..."/>
-      <button class="api-save-btn" onclick="saveKey()">✅ Save</button>
+    <div class="api-banner" id="api-banner" style="border-color:#3fb950;">
+      <span>🛡️ <strong style="color:#3fb950;">Free Cyber Mentor Mode</strong> — API key/credits ke bina instant learning answers. Curated knowledge mode active.</span>
     </div>
     <div class="sec-label">// quick topics</div>
     <div class="chip-row">
@@ -519,20 +517,32 @@ function switchTab(t) {
 }
 
 // ═══════════════════════════════════════════
-// API KEY
+// FREE BUILT-IN CYBER MENTOR (NO API / NO CREDITS)
 // ═══════════════════════════════════════════
-function saveKey() {
-  const k = document.getElementById('api-key-input').value.trim();
-  if (!k||!k.startsWith('sk-ant-')) { alert('Invalid key! Should start with sk-ant-\n\nFree key: https://console.anthropic.com'); return; }
-  S.set('cm_key', k);
-  if (currentUser) S.set('cm_key_'+currentUser.username, k);
-  document.getElementById('api-banner').style.display = 'none';
-  addMsg('system','API key saved! Ab questions poochho. 🚀');
-}
-
-function getKey() {
-  if (currentUser) return S.get('cm_key_'+currentUser.username) || S.get('cm_key') || '';
-  return S.get('cm_key') || '';
+function builtInMentorReply(question) {
+  const q = question.toLowerCase();
+  const lessons = [
+    {keys:['sql injection','sql'], title:'SQL Injection', answer:'SQL Injection (SQLi) tab hota hai jab user input ko unsafe tarike se SQL query mein jod diya jata hai.\n\nExample of unsafe pattern: query string mein user input concatenate karna.\nSafer approach: parameterized queries / prepared statements use karo, least-privilege DB account rakho, aur errors user ko expose mat karo.\n\nPractice sirf apne lab ya authorized application par.'},
+    {keys:['xss','cross site scripting'], title:'Cross-Site Scripting (XSS)', answer:'XSS vulnerability mein attacker-controlled content browser mein script ke roop mein execute ho sakta hai.\n\nTypes: Stored, Reflected, DOM-based.\nPrevention: context-aware output encoding, safe DOM APIs (textContent), sanitization where rich HTML is needed, CSP, aur input validation.\n\nPractice local lab/authorized target par hi.'},
+    {keys:['nmap','port scan','ports'], title:'Network Scanning Basics', answer:'Nmap network discovery aur port/service inventory tool hai.\n\nBeginner learning: ports TCP/UDP services ke communication endpoints hote hain; open port ka matlab service connections accept kar rahi hai.\n\nCommands ko sirf apne device, lab network, ya written authorization wale systems par use karo. Start with Nmap documentation and a local practice VM.'},
+    {keys:['linux','bash','chmod','sudo','terminal command'], title:'Linux Basics', answer:'Linux basics mein file navigation, permissions, processes aur networking commands aate hain.\n\nStarter commands: pwd (current directory), ls (files), cd (directory change), mkdir (folder), cat (file content), grep (text search), chmod (permissions), ps (process list).\n\nCommands run karne se pehle samjho ki woh kya change karengi; sudo elevated privileges deta hai.'},
+    {keys:['burp suite','burp'], title:'Burp Suite Basics', answer:'Burp Suite web security testing proxy hai. Ye browser aur test web application ke beech HTTP/HTTPS traffic inspect karne, requests samajhne aur authorized testing mein help karta hai.\n\nLearning flow: lab app open karo, browser proxy configure karo, request/response observe karo, parameters aur cookies samjho. PortSwigger Web Security Academy safe practice ke liye.'},
+    {keys:['metasploit','msf'], title:'Metasploit Basics', answer:'Metasploit ek security testing framework hai. Ismein modules vulnerability validation aur controlled lab testing ke liye hote hain.\n\nBeginner ke liye pehle networking, Linux, vulnerability concepts aur isolated lab seekho. Kisi public/third-party target par bina permission test mat karo.'},
+    {keys:['ctf','capture the flag'], title:'CTF Beginner Guide', answer:'CTF (Capture The Flag) cybersecurity puzzles/labs hain. Beginner path: Linux basics → web basics → networking → beginner challenges → write-ups.\n\nHints ko step-by-step use karo, solution dekhne se pehle khud try karo, aur har challenge ke baad notes banao. Practice platforms ke rules follow karo.'},
+    {keys:['owasp','top 10'], title:'OWASP Web Security', answer:'OWASP Top 10 web application security risks ka awareness list hai. Ismein broken access control, cryptographic failures, injection, insecure design, security misconfiguration, vulnerable components aur authentication-related risks jaise areas shamil hote hain.\n\nPrevention: access control server-side enforce karo, secure defaults, dependency updates, safe input/output handling, aur logging/monitoring.'},
+    {keys:['password','passphrase'], title:'Password Security', answer:'Strong password unique aur long hona chahiye; password manager use karna helpful hai. MFA enable karo. Websites ko passwords plaintext ya reversible encryption mein store nahi karna chahiye—salted, slow password hashing (e.g. Argon2id/bcrypt) use karein. Password reuse avoid karo.'},
+    {keys:['wireshark','packet'], title:'Wireshark Basics', answer:'Wireshark network protocol analyzer hai jo packet capture ko inspect karta hai. Learning mein packet fields, DNS lookup, TCP handshake, HTTP vs HTTPS aur filters samjho.\n\nTraffic capture sirf apne network/lab ya authorized environment se karo; sensitive traffic capture mat karo.'},
+    {keys:['reverse shell'], title:'Reverse Shell — Concept & Defense', answer:'Reverse shell concept mein remote machine connection initiate karke command channel establish karne ki koshish hoti hai. Ye misuse-prone technique hai, isliye yahan safe high-level concept aur defense focus karenge.\n\nDefense: outbound traffic control, endpoint detection, least privilege, suspicious process/network monitoring, aur incident response.'},
+    {keys:['privilege escalation','priv esc'], title:'Privilege Escalation — Defensive Learning', answer:'Privilege escalation ka matlab limited permissions se higher permissions tak pahunchna. Defensive learning: permissions audit, patching, least privilege, secure service configuration, credential protection aur logs review. Practice only in intentionally vulnerable labs.'},
+    {keys:['osint','whois','recon'], title:'OSINT Basics', answer:'OSINT public sources se information gather aur verify karne ka process hai. Ethical workflow: scope define karo, public sources use karo, information verify/corroborate karo, sensitive personal data collect karne se bacho, aur findings document karo.'},
+    {keys:['cryptography','encryption','hash','rsa','aes'], title:'Cryptography Basics', answer:'Encryption data ko key ke saath reversible form mein protect karta hai; hashing one-way digest generate karta hai. AES widely used symmetric encryption hai; RSA public-key cryptography ka example. Passwords ke liye plain SHA hashes ke bajay dedicated password hashing algorithm use karna chahiye.'},
+    {keys:['network','tcp','udp','dns','http'], title:'Networking Basics', answer:'Networking fundamentals: IP address device/interface ko identify karta hai, DNS names ko IP mein resolve karta hai, TCP reliable connection-oriented transport hai, UDP connectionless transport, HTTP web protocol aur HTTPS TLS ke through encrypted transport deta hai. Ports services identify karne mein help karte hain.'},
+    {keys:['hello','hi','hey','namaste'], title:'Welcome', answer:'Namaste! 🛡️ CyberMind Free Mentor ready hai. Tum SQL Injection, XSS, Linux, Networking, OWASP, Nmap concepts, CTF, OSINT ya cybersecurity roadmap ke baare mein pooch sakte ho. Topic likho—main beginner-friendly Hinglish mein samjhaunga.'}
+  ];
+  for (const lesson of lessons) {
+    if (lesson.keys.some(k=>q.includes(k))) return '📘 '+lesson.title+'\n\n'+lesson.answer+'\n\nℹ️ Free built-in mentor: curated answers; live AI/API currently disabled.';
+  }
+  return '🛡️ CyberMind Free Mentor\n\nMain abhi free built-in knowledge mode mein hoon (external API ya local model use nahi ho raha). Is mode mein common cybersecurity topics par curated explanations available hain.\n\nTry asking about: SQL Injection, XSS, Linux, Networking, Nmap concepts, Burp Suite, OWASP, Password Security, Wireshark, CTF, OSINT, Cryptography, or Privilege Escalation.\n\nAgar tum kisi specific concept ka naam ya “cybersecurity roadmap” likhoge, main available topic guide dunga.\n\nℹ️ Live generative AI is not connected in this temporary free mode.';
 }
 
 // ═══════════════════════════════════════════
@@ -573,35 +583,22 @@ async function sendQuery() {
   const q = inp.value.trim();
   const btn = document.getElementById('send-btn');
   if (!q||btn.disabled) return;
-  const key = getKey();
-  if (!key) { addMsg('error','Pehle API key daalo!'); return; }
   inp.value=''; btn.disabled=true;
   lastQ=q;
-  addMsg('user', q);
-  chatMsgs.push({role:'user',content:q});
-  const thinking = addMsg('system','Processing...');
+  addMsg('user',q);
+  const thinking=addMsg('system','Mentor soch raha hai...');
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYS,messages:chatMsgs})
-    });
-    const data = await res.json();
+    const reply=builtInMentorReply(q);
     thinking.remove();
-    if (data.error) { addMsg('error','API Error: '+data.error.message); chatMsgs.pop(); }
-    else {
-      const reply = (data.content||[]).map(b=>b.text||'').join('');
-      chatMsgs.push({role:'assistant',content:reply});
-      lastA=reply;
-      addMsg('ai',reply);
-      saveHistory(q,reply);
-      trackProgress(q);
-    }
-    if (chatMsgs.length>24) chatMsgs=chatMsgs.slice(-22);
+    chatMsgs.push({role:'user',content:q},{role:'assistant',content:reply});
+    lastA=reply;
+    addMsg('ai',reply);
+    saveHistory(q,reply);
+    trackProgress(q);
+    if(chatMsgs.length>24) chatMsgs=chatMsgs.slice(-22);
   } catch(e) {
     thinking.remove();
-    addMsg('error','Connection error: '+e.message);
-    chatMsgs.pop();
+    addMsg('error','Mentor response error: '+e.message);
   }
   btn.disabled=false;
   inp.focus();
