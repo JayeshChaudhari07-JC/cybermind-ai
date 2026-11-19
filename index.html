@@ -478,9 +478,7 @@ function loginSuccess(user) {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('main-app').style.display = 'block';
   document.getElementById('user-badge').textContent = '👤 ' + user.username;
-  const key = S.get('cm_key_'+user.username) || S.get('cm_key') || '';
-  document.getElementById('api-key-input').value = key;
-  if (key) document.getElementById('api-banner').style.display = 'none';
+  // Free built-in mentor mode does not require API keys.
   addMsg('system', 'Welcome back, ' + user.username + '! 🛡️');
 }
 
@@ -555,7 +553,7 @@ function addMsg(type, text) {
   if (type==='ai') {
     const pre = document.createElement('div');
     pre.className = 'msg-ai-prefix';
-    pre.textContent = 'claude@cybermind:';
+    pre.textContent = 'cybermind@mentor:';
     div.appendChild(pre);
     div.appendChild(document.createTextNode(text));
   } else {
