@@ -17,12 +17,12 @@ The frontend is GitHub Pages; never place provider API keys in HTML or browser s
 1. Create/sign in to Cloudflare account and open Workers & Pages.
 2. Create a Worker named `cybermind-ai-backend`.
 3. Copy this repository's `worker.js` into the Worker editor and deploy.
-4. Worker settings: add secrets (only keys for providers you actually use):
-   - `AGENTROUTER_API_KEY` — AgentRouter key
-   - `AGENTROUTER_MODEL` — model ID from AgentRouter's Models page (choose a model explicitly marked free or use only credits you intentionally have; free credit promotions are not verified or guaranteed)
-   - `AGENTROUTER_BASE_URL` — optional text setting; defaults to `https://agentrouter.org/v1`; if your dashboard documentation requires `https://co.agentrouter.org/v1`, set that instead.
-   - `ANTHROPIC_API_KEY` — Anthropic Console API key, if configured
-   - `ANTHROPIC_MODEL` — model ID enabled in your Anthropic API account
+4. In Worker > Settings > Variables and Secrets, configure only providers you intend to use:
+   - **Secret** `AGENTROUTER_API_KEY` — AgentRouter API key.
+   - **Text variable** `AGENTROUTER_MODEL` — exact model ID from your AgentRouter dashboard (do not assume free credits; check quota/pricing first).
+   - **Optional text variable** `AGENTROUTER_BASE_URL` — defaults to `https://agentrouter.org/v1`; if your account documentation shows another compatible base, set it here.
+   - **Secret** `ANTHROPIC_API_KEY` — Anthropic Console API key, if you have API credits.
+   - **Text variable** `ANTHROPIC_MODEL` — exact model ID enabled in your API account.
 5. In CyberMind AI Terminal > AI Provider Settings, paste Worker URL, select provider, Save.
 6. Test Backend. Health check shows provider keys configured (does not reveal keys).
 7. Chat test: `Explain DNS in beginner Hinglish`.
@@ -33,7 +33,7 @@ The frontend is GitHub Pages; never place provider API keys in HTML or browser s
 - `GET /health` — health and configured provider booleans (no secrets returned)
 - `POST /chat` — `{provider, question, history}`; provider values: `agentrouter`, `anthropic`, `auto`
 - `auto`: AgentRouter first; Anthropic fallback only when configured.
-- CORS allows the GitHub Pages origin only. CORS is not authentication; public Worker can still be targeted by non-browser clients. Before adding provider secrets, add abuse controls/rate limiting and keep any account billing/spend cap at zero or disabled where available.
+- CORS allows the GitHub Pages origin only. A small per-isolate throttle is included, but it is best-effort and not durable; CORS is not authentication. The Worker is publicly reachable and can still be targeted by non-browser clients. Add Cloudflare durable rate limiting/Turnstile before adding provider credits. Keep billing/spend caps disabled or set to zero where possible.
 
 ## Local config
 Wrangler config is included. Keep API values in Cloudflare secrets or local `.dev.vars` (never commit). `.gitignore` excludes secret files.
