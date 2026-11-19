@@ -264,8 +264,19 @@ a{text-decoration:none;color:inherit;}
 
   <!-- TERMINAL TAB -->
   <div class="content active" id="content-qa">
-    <div class="api-banner" id="api-banner" style="border-color:#3fb950;">
-      <span>🛡️ <strong style="color:#3fb950;">Free Cyber Mentor Mode</strong> — API key/credits ke bina instant learning answers. Curated knowledge mode active.</span>
+    <div class="api-banner" id="ai-settings" style="border-color:#58a6ff;display:block;">
+      <strong style="color:#58a6ff;">⚙️ AI Provider Settings</strong>
+      <div style="font-size:12px;color:#8b949e;margin:7px 0;">Backend URL (Cloudflare Worker) — API keys backend par secret rahengi.</div>
+      <input class="api-input" style="width:100%;max-width:none;margin-bottom:8px;" id="worker-url" placeholder="https://your-worker.your-subdomain.workers.dev"/>
+      <select class="api-input" style="width:100%;max-width:none;margin-bottom:8px;" id="ai-provider">
+        <option value="builtin">Built-in Mentor (free, no API)</option>
+        <option value="agentrouter">AgentRouter (backend secret)</option>
+        <option value="anthropic">Anthropic API (backend secret)</option>
+        <option value="auto">Auto / fallback routing</option>
+      </select>
+      <button class="api-save-btn" onclick="saveAISettings()">💾 Save AI Settings</button>
+      <button class="api-save-btn" style="background:#161b22;border-color:#30363d;color:#c9d1d9;" onclick="testAIConnection()">🔌 Test Backend</button>
+      <span id="ai-status" style="font-size:12px;display:block;margin-top:8px;">Settings device par save hoti hain.</span>
     </div>
     <div class="sec-label">// quick topics</div>
     <div class="chip-row">
@@ -478,7 +489,7 @@ function loginSuccess(user) {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('main-app').style.display = 'block';
   document.getElementById('user-badge').textContent = '👤 ' + user.username;
-  // Free built-in mentor mode does not require API keys.
+  loadAISettings();
   addMsg('system', 'Welcome back, ' + user.username + '! 🛡️');
 }
 
@@ -512,6 +523,38 @@ function switchTab(t) {
   if (t==='history')   renderHistory();
   if (t==='bookmarks') renderBookmarks();
   if (t==='progress')  renderProgress();
+}
+
+// ═══════════════════════════════════════════
+// AI PROVIDER SETTINGS — key values never stored in frontend
+// ═══════════════════════════════════════════
+function loadAISettings() {
+  const cfg = S.get('cm_ai_settings') || {};
+  const urlEl = document.getElementById('worker-url');
+  const providerEl = document.getElementById('ai-provider');
+  if(urlEl) urlEl.value = cfg.workerUrl || '';
+  if(providerEl) providerEl.value = cfg.provider || 'builtin';
+}
+function saveAISettings() {
+  const workerUrl = document.getElementById('worker-url').value.trim().replace(/\\/$/, '');
+  const provider = document.getElementById('ai-provider').value;
+  if(provider !== 'builtin' && !workerUrl) { setAIStatus('Backend URL required for API providers.', false); return; }
+  S.set('cm_ai_settings', {workerUrl, provider});
+  setAIStatus('Settings saved on this device. API keys are not stored in the browser.', true);
+}
+function setAIStatus(msg, ok) {
+  const el=document.getElementById('ai-status');
+  if(el){el.textContent=msg;el.style.color=ok?'#3fb950':'#f85149';}
+}
+async function testAIConnection() {
+  const url=document.getElementById('worker-url').value.trim().replace(/\\/$/, '');
+  if(!url){setAIStatus('Worker URL enter karo.',false);return;}
+  setAIStatus('Checking backend…',true);
+  try {
+    const r=await fetch(url+'/health');
+    const data=await r.json();
+    setAIStatus(r.ok && data.ok ? 'Backend reachable ✓' : 'Backend health check failed.',!!(r.ok&&data.ok));
+  } catch(e){setAIStatus('Backend unreachable: '+e.message,false);}
 }
 
 // ═══════════════════════════════════════════
@@ -577,29 +620,38 @@ function askQ(q) {
 }
 
 async function sendQuery() {
-  const inp = document.getElementById('q-input');
-  const q = inp.value.trim();
-  const btn = document.getElementById('send-btn');
-  if (!q||btn.disabled) return;
-  inp.value=''; btn.disabled=true;
-  lastQ=q;
-  addMsg('user',q);
+  const inp=document.getElementById('q-input');
+  const q=inp.value.trim();
+  const btn=document.getElementById('send-btn');
+  if(!q||btn.disabled)return;
+  inp.value='';btn.disabled=true;lastQ=q;addMsg('user',q);
   const thinking=addMsg('system','Mentor soch raha hai...');
+  const cfg=S.get('cm_ai_settings')||{};
   try {
-    const reply=builtInMentorReply(q);
+    let reply;
+    if(cfg.provider && cfg.provider!=='builtin' && cfg.workerUrl) {
+      const response=await fetch(cfg.workerUrl+'/chat',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({provider:cfg.provider,question:q,history:chatMsgs.slice(-12)})
+      });
+      const payload=await response.json();
+      if(!response.ok) throw new Error(payload.error||'AI backend error');
+      reply=payload.reply;
+    } else {
+      reply=builtInMentorReply(q);
+    }
     thinking.remove();
     chatMsgs.push({role:'user',content:q},{role:'assistant',content:reply});
-    lastA=reply;
-    addMsg('ai',reply);
-    saveHistory(q,reply);
-    trackProgress(q);
-    if(chatMsgs.length>24) chatMsgs=chatMsgs.slice(-22);
+    lastA=reply;addMsg('ai',reply);saveHistory(q,reply);trackProgress(q);
+    if(chatMsgs.length>24)chatMsgs=chatMsgs.slice(-22);
   } catch(e) {
     thinking.remove();
-    addMsg('error','Mentor response error: '+e.message);
+    const fallback=builtInMentorReply(q);
+    addMsg('system','API unavailable — free built-in mentor fallback active.');
+    chatMsgs.push({role:'user',content:q},{role:'assistant',content:fallback});
+    lastA=fallback;addMsg('ai',fallback);saveHistory(q,fallback);trackProgress(q);
   }
-  btn.disabled=false;
-  inp.focus();
+  btn.disabled=false;inp.focus();
 }
 
 // ═══════════════════════════════════════════
