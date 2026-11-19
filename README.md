@@ -19,7 +19,8 @@ The frontend is GitHub Pages; never place provider API keys in HTML or browser s
 3. Copy this repository's `worker.js` into the Worker editor and deploy.
 4. Worker settings: add secrets (only keys for providers you actually use):
    - `AGENTROUTER_API_KEY` — AgentRouter key
-   - `AGENTROUTER_MODEL` — model ID from AgentRouter's Models page (choose a model explicitly marked free or use only credits you intentionally have)
+   - `AGENTROUTER_MODEL` — model ID from AgentRouter's Models page (choose a model explicitly marked free or use only credits you intentionally have; free credit promotions are not verified or guaranteed)
+   - `AGENTROUTER_BASE_URL` — optional text setting; defaults to `https://agentrouter.org/v1`; if your dashboard documentation requires `https://co.agentrouter.org/v1`, set that instead.
    - `ANTHROPIC_API_KEY` — Anthropic Console API key, if configured
    - `ANTHROPIC_MODEL` — model ID enabled in your Anthropic API account
 5. In CyberMind AI Terminal > AI Provider Settings, paste Worker URL, select provider, Save.
