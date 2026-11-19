@@ -12,6 +12,17 @@ function cors(request) {
   const origin=request.headers.get("Origin");
   return origin===ALLOWED_ORIGIN || origin===null;
 }
+// Best-effort per-isolate throttle. For production/public use, add a durable
+// Cloudflare rate-limit binding or Turnstile before putting provider credits here.
+const buckets = new Map();
+function allowRequest(ip) {
+  const now=Date.now(), windowMs=60_000, max=8;
+  let b=buckets.get(ip);
+  if(!b || now-b.start>windowMs) b={start:now,count:0};
+  b.count++; buckets.set(ip,b);
+  if(buckets.size>5000) for(const [k,v] of buckets) if(now-v.start>windowMs) buckets.delete(k);
+  return b.count<=max;
+}
 async function agentRouter(env, question, history) {
   if(!env.AGENTROUTER_API_KEY || !env.AGENTROUTER_MODEL) throw new Error("AgentRouter key/model not configured");
   const messages=[...(history||[]).filter(m=>m && ["user","assistant"].includes(m.role) && typeof m.content==="string").slice(-12),{role:"user",content:question}];
@@ -45,6 +56,9 @@ export default {
     const url=new URL(request.url);
     if(request.method==="GET" && url.pathname==="/health") return json({ok:true,service:"CyberMind AI backend",providers:{agentrouter:!!env.AGENTROUTER_API_KEY,anthropic:!!env.ANTHROPIC_API_KEY}});
     if(request.method!=="POST" || url.pathname!=="/chat") return json({error:"Not found"},404);
+    if(request.headers.get("Origin")!==ALLOWED_ORIGIN) return json({error:"Origin required/blocked"},403);
+    const ip=request.headers.get("CF-Connecting-IP")||"unknown";
+    if(!allowRequest(ip)) return json({error:"Temporary request limit reached. Wait one minute and retry."},429);
     let body;
     try { body=await request.json(); } catch { return json({error:"Invalid JSON body"},400); }
     const question=typeof body.question==="string"?body.question.trim():"";
