@@ -26,7 +26,7 @@ function allowRequest(ip) {
 async function agentRouter(env, question, history) {
   if(!env.AGENTROUTER_API_KEY || !env.AGENTROUTER_MODEL) throw new Error("AgentRouter key/model not configured");
   const messages=[...(history||[]).filter(m=>m && ["user","assistant"].includes(m.role) && typeof m.content==="string").slice(-12),{role:"user",content:question}];
-  const r=await fetch("https://agentrouter.org/v1/chat/completions",{
+  const r=await fetch((env.AGENTROUTER_BASE_URL||"https://agentrouter.org/v1").replace(/\\/$/,"")+"/chat/completions",{
     method:"POST",headers:{"Authorization":"Bearer "+env.AGENTROUTER_API_KEY,"Content-Type":"application/json"},
     body:JSON.stringify({model:env.AGENTROUTER_MODEL,messages,temperature:0.5,max_tokens:1200})
   });
